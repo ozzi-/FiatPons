@@ -919,7 +919,7 @@ dependencies = [
 
 [[package]]
 name = "qbz-cmaf"
-version = "2.0.2"
+version = "2.0.1"
 dependencies = [
  "aes",
  "base64",
@@ -934,7 +934,7 @@ dependencies = [
 
 [[package]]
 name = "qbz-models"
-version = "2.0.2"
+version = "2.0.1"
 dependencies = [
  "async-trait",
  "chrono",
@@ -948,7 +948,7 @@ dependencies = [
 
 [[package]]
 name = "qbz-qobuz"
-version = "2.0.2"
+version = "2.0.1"
 dependencies = [
  "anyhow",
  "base64",

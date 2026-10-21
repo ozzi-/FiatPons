@@ -562,9 +562,16 @@ Page {
                 return page.rowToTrack(model)
             }
 
+            function tracksAfter() {
+                var rest = []
+                for (var i = index + 1; i < tracksModel.count; i++)
+                    rest.push(page.rowToTrack(tracksModel.get(i)))
+                return rest
+            }
+
             onClicked: {
                 if (!page.editMode)
-                    app.queue.playNow(trackObj())
+                    app.queue.playNowRange(trackObj(), tracksAfter())
             }
 
             menu: page.editMode ? null : trackMenu

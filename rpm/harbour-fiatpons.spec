@@ -16,7 +16,7 @@
 Name:       harbour-fiatpons
 Summary:    Fiat Pons
 Version:    1.0
-Release:    1
+Release:    2
 License:    MIT
 URL:        https://github.com/munksh/FiatPons
 Source0:    %{name}-%{version}.tar.bz2
@@ -92,6 +92,10 @@ desktop-file-install --delete-original \
 %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 
 %changelog
+* Tue Oct 21 2026 ozzi- <oz@oz-web.com> - 1.0-2
+- Playing a track on an album or playlist page now queues the rest of the
+  list (everything below the clicked track) after it
+
 * Sat Sep 12 2026 Caesar <caesar@munkstolen.se> - 0.3-1
 - Add MP3, CD, Hi-Res and Hi-Res Max quality options
 - Show the audio quality actually delivered by the stream

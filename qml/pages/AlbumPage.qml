@@ -348,7 +348,14 @@ Page {
 
             function trackObj() { return page.rowToTrack(model) }
 
-            onClicked: app.queue.playNow(trackObj())
+            function tracksAfter() {
+                var rest = []
+                for (var i = index + 1; i < tracksModel.count; i++)
+                    rest.push(page.rowToTrack(tracksModel.get(i)))
+                return rest
+            }
+
+            onClicked: app.queue.playNowRange(trackObj(), tracksAfter())
 
             menu: ContextMenu {
                 MenuItem { text: "Play now";     onClicked: app.queue.playNow(delegateItem.trackObj()) }
