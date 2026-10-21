@@ -536,10 +536,18 @@ Page {
                     anchors.centerIn: parent
                     visible: !page.editMode
 
-                    icon.source: "image://theme/icon-l-play"
+                    icon.source: app.playback.playing
+                        ? "image://theme/icon-l-pause" : "image://theme/icon-l-play"
                     icon.color: FiatPonsTheme.primaryText
                     enabled: tracksModel.count > 0
-                    onClicked: page.playAll()
+                    onClicked: {
+                        if (app.playback.nowTrack !== null
+                                && !app.playback.explicitlyStopped) {
+                            app.playback.toggle()
+                        } else {
+                            page.playAll()
+                        }
+                    }
                 }
             }
 

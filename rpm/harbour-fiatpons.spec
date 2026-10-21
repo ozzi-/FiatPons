@@ -16,7 +16,7 @@
 Name:       harbour-fiatpons
 Summary:    Fiat Pons
 Version:    1.0
-Release:    2
+Release:    3
 License:    MIT
 URL:        https://github.com/munksh/FiatPons
 Source0:    %{name}-%{version}.tar.bz2
@@ -92,6 +92,11 @@ desktop-file-install --delete-original \
 %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 
 %changelog
+* Tue Oct 21 2026 ozzi- <oz@oz-web.com> - 1.0-3
+- Album and playlist play button now mirrors the playback state: shows a
+  pause icon while playing; tapping it pauses, resumes when paused, and
+  still starts the list from the top when nothing is loaded
+
 * Tue Oct 21 2026 ozzi- <oz@oz-web.com> - 1.0-2
 - Playing a track on an album or playlist page now queues the rest of the
   list (everything below the clicked track) after it

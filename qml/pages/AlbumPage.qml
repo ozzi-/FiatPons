@@ -287,16 +287,22 @@ Page {
                 opacity: enabled ? 1.0 : 0.4
                 Icon {
                     anchors.centerIn: parent
-                    source: "image://theme/icon-l-play"
+                    source: app.playback.playing
+                        ? "image://theme/icon-l-pause" : "image://theme/icon-l-play"
                     color: FiatPonsTheme.accent
                 }
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
                         if (tracksModel.count === 0) return
-                        app.queue.playNow(page.rowToTrack(tracksModel.get(0)))
-                        for (var i = 1; i < tracksModel.count; i++)
-                            app.queue.enqueue(page.rowToTrack(tracksModel.get(i)))
+                        if (app.playback.nowTrack !== null
+                                && !app.playback.explicitlyStopped) {
+                            app.playback.toggle()
+                        } else {
+                            app.queue.playNow(page.rowToTrack(tracksModel.get(0)))
+                            for (var i = 1; i < tracksModel.count; i++)
+                                app.queue.enqueue(page.rowToTrack(tracksModel.get(i)))
+                        }
                     }
                 }
             }
