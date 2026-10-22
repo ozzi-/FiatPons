@@ -1,6 +1,6 @@
 # Local editor configuration
-*.pro.user
-*.pro.user.*
+*.user
+*.user.*
 *.autosave
 .vscode/
 .idea/
@@ -24,6 +24,9 @@ ui_*.h
 
 # Built application
 /harbour-fiatpons
+
+# Build artifacts (local only, never committed)
+dist/
 
 # Sailfish SDK and packaging output
 .sfdk/
