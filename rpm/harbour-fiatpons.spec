@@ -15,8 +15,8 @@
 
 Name:       harbour-fiatpons
 Summary:    Fiat Pons
-Version:    1.0
-Release:    5
+Version:    1.1.0
+Release:    1
 License:    MIT
 URL:        https://github.com/munksh/FiatPons
 Source0:    %{name}-%{version}.tar.bz2
@@ -92,6 +92,13 @@ desktop-file-install --delete-original \
 %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 
 %changelog
+* Sun Oct 25 2026 ozzi- <oz@oz-web.com> - 1.1.0-1
+- Autoplay playback setting: when on, starting a track on an album or
+  playlist page queues the remaining tracks of that list after it;
+  off by default (stock single-track behaviour)
+- Setting persists across app restarts (stored in the app's persistent
+  config directory, which the SFOS 5 sandbox keeps)
+
 * Sun Oct 25 2026 ozzi- <oz@oz-web.com> - 1.0-5
 - Fix: Autoplay setting now actually persists across app restarts (SFOS 5
   sandbox: QSettings files are lost; the setting now lives in the app's
