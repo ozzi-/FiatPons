@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
+#include <QSettings>
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 #include <QtNetwork/QHostAddress>
