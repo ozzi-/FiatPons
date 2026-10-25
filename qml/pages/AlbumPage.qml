@@ -361,7 +361,12 @@ Page {
                 return rest
             }
 
-            onClicked: app.queue.playNowRange(trackObj(), tracksAfter())
+            onClicked: {
+                // Autoplay off (default): stock single-track play.
+                // Autoplay on: play the tapped track and queue the rest.
+                var rest = app.playback.autoQueue ? tracksAfter() : []
+                app.queue.playNowRange(trackObj(), rest)
+            }
 
             menu: ContextMenu {
                 MenuItem { text: "Play now";     onClicked: app.queue.playNow(delegateItem.trackObj()) }
