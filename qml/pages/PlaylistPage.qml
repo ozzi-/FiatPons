@@ -578,8 +578,12 @@ Page {
             }
 
             onClicked: {
-                if (!page.editMode)
-                    app.queue.playNowRange(trackObj(), tracksAfter())
+                if (!page.editMode) {
+                    // Autoplay off (default): stock single-track play.
+                    // Autoplay on: play the tapped track and queue the rest.
+                    var rest = app.playback.autoQueue ? tracksAfter() : []
+                    app.queue.playNowRange(trackObj(), rest)
+                }
             }
 
             menu: page.editMode ? null : trackMenu

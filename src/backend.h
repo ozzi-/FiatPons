@@ -564,6 +564,35 @@ Q_INVOKABLE QString streamQualityPreference() const {
         settings.sync();
     }
 
+    // Autoplay: when the user starts a track on the album or playlist
+    // page, queue the remaining tracks of that list after it.
+    // Off by default (stock single-track behaviour).
+    Q_INVOKABLE bool autoQueueEnabled() const {
+        QSettings settings(
+            "se.munkstolen",
+            "harbour-fiatpons"
+        );
+
+        return settings.value(
+            "playback/autoQueue",
+            false
+        ).toBool();
+    }
+
+    Q_INVOKABLE void setAutoQueueEnabled(bool enabled) {
+        QSettings settings(
+            "se.munkstolen",
+            "harbour-fiatpons"
+        );
+
+        settings.setValue(
+            "playback/autoQueue",
+            enabled
+        );
+
+        settings.sync();
+    }
+
     Q_INVOKABLE void search(const QString &query)        { emit requestSearch(query); }
     Q_INVOKABLE void searchAlbums(const QString &query)  { emit requestSearchAlbums(query); }
     Q_INVOKABLE void searchArtists(const QString &query) { emit requestSearchArtists(query); }
