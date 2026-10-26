@@ -10,7 +10,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
-#include <QSettings>
 #include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 #include <QtNetwork/QHostAddress>
@@ -526,16 +525,11 @@ public:
         m_thread.wait();
     }
 
-Q_INVOKABLE QString streamQualityPreference() const {
-        QSettings settings(
-            "se.munkstolen",
-            "harbour-fiatpons"
-        );
-
-        QString value = settings.value(
-            "playback/streamQuality",
+    Q_INVOKABLE QString streamQualityPreference() const {
+        const QString value = settingRead(
+            "streamQuality",
             "lossless"
-        ).toString();
+        );
 
         if (value == "mp3"
                 || value == "lossless"
@@ -549,11 +543,6 @@ Q_INVOKABLE QString streamQualityPreference() const {
     Q_INVOKABLE void setStreamQualityPreference(
         const QString &quality
     ) {
-        QSettings settings(
-            "se.munkstolen",
-            "harbour-fiatpons"
-        );
-
         QString value = quality;
 
         if (value != "mp3"
@@ -562,12 +551,7 @@ Q_INVOKABLE QString streamQualityPreference() const {
                 && value != "ultrahires")
             value = "lossless";
 
-        settings.setValue(
-            "playback/streamQuality",
-            value
-        );
-
-        settings.sync();
+        settingWrite("streamQuality", value);
     }
 
     // Autoplay: when the user starts a track on the album or playlist
@@ -589,30 +573,31 @@ Q_INVOKABLE QString streamQualityPreference() const {
         ).absoluteFilePath("settings.conf");
     }
 
-    Q_INVOKABLE bool autoQueueEnabled() const {
+    // Read one key from the app's persistent settings file.
+    // Returns fallback when the file or key is absent.
+    static QString settingRead(const QString &key, const QString &fallback) {
         QFile file(appSettingsFile());
 
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-            return false;
+            return fallback;
 
         QTextStream in(&file);
 
         while (!in.atEnd()) {
             const QStringList kv = in.readLine().split('=');
 
-            if (kv.size() == 2 && kv.at(0).trimmed() == "autoQueue")
-                return kv.at(1).trimmed() == "true";
+            if (kv.size() == 2 && kv.at(0).trimmed() == key)
+                return kv.at(1).trimmed();
         }
 
-        return false;
+        return fallback;
     }
 
-    Q_INVOKABLE void setAutoQueueEnabled(bool enabled) {
-        if (!QDir().mkpath(
-                QFileInfo(appSettingsFile()).absolutePath()))
+    // Write one key, preserving any other keys already in the file.
+    static void settingWrite(const QString &key, const QString &value) {
+        if (!QDir().mkpath(QFileInfo(appSettingsFile()).absolutePath()))
             return;
 
-        // Keep any other keys the file may already carry.
         QMap<QString, QString> values;
 
         {
@@ -625,15 +610,12 @@ Q_INVOKABLE QString streamQualityPreference() const {
                     const QStringList kv = in.readLine().split('=');
 
                     if (kv.size() == 2)
-                        values.insert(
-                            kv.at(0).trimmed(),
-                            kv.at(1).trimmed()
-                        );
+                        values.insert(kv.at(0).trimmed(), kv.at(1).trimmed());
                 }
             }
         }
 
-        values.insert("autoQueue", enabled ? "true" : "false");
+        values.insert(key, value);
 
         QFile file(appSettingsFile());
 
@@ -650,6 +632,14 @@ Q_INVOKABLE QString streamQualityPreference() const {
             out << keys.at(i) << '=' << values.value(keys.at(i)) << '\n';
 
         file.flush();
+    }
+
+    Q_INVOKABLE bool autoQueueEnabled() const {
+        return settingRead("autoQueue", "false") == "true";
+    }
+
+    Q_INVOKABLE void setAutoQueueEnabled(bool enabled) {
+        settingWrite("autoQueue", enabled ? "true" : "false");
     }
 
     Q_INVOKABLE void search(const QString &query)        { emit requestSearch(query); }
