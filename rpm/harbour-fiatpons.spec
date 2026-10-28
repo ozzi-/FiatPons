@@ -15,7 +15,7 @@
 
 Name:       harbour-fiatpons
 Summary:    Fiat Pons
-Version:    1.2.0
+Version:    1.3.0
 Release:    1
 License:    MIT
 URL:        https://github.com/munksh/FiatPons
@@ -92,6 +92,12 @@ desktop-file-install --delete-original \
 %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 
 %changelog
+* Wed Oct 28 2026 ozzi- <oz@oz-web.com> - 1.3.0-1
+- Album/playlist big play button now reflects only that list: shows Pause
+  only while this album/playlist is the one playing (not whenever anything
+  is playing), and shows a short loader while the tapped track is still
+  resolving before it flips to Pause
+
 * Mon Oct 26 2026 ozzi- <oz@oz-web.com> - 1.2.0-1
 - Fix: streaming-quality preference now persists across app restarts
   (was lost because QSettings files are not kept by the SFOS 5 sailjail

@@ -32,8 +32,59 @@ Page {
     property string statusText: ""
     property var originalOrder: []
 
+    // Big play button loader state: set when this page initiates a fresh
+    // start, cleared once the first track really begins (or on error /
+    // timeout) so a 2-3 s stream resolve doesn't look like a dead button.
+    property bool startingLoad: false
+
+    // Is the currently playing (or resolving) track part of this playlist?
+    readonly property bool isActive:
+        trackInList(app.playback.nowTrack)
+        || trackInList(app.playback.inflightTrack)
+
     function paint() {
         FiatPonsTheme.applyPalette(page)
+    }
+
+    // ---- Big play button: play / pause / loader state ----
+
+    function trackInList(track) {
+        if (!track) return false
+        var target = String(track.id)
+        for (var i = 0; i < tracksModel.count; i++) {
+            if (String(tracksModel.get(i).id) === target)
+                return true
+        }
+        return false
+    }
+
+    function beginPlayback() {
+        startingLoad = true
+        startLoadTimer.restart()
+    }
+
+    Timer {
+        id: startLoadTimer
+        interval: 20000
+        repeat: false
+        onTriggered: page.startingLoad = false
+    }
+
+    Connections {
+        target: app.playback
+        function onPlayingChanged() {
+            if (app.playback.playing)
+                page.startingLoad = false
+        }
+    }
+
+    Connections {
+        target: app.playback
+        function onStatusLineChanged() {
+            var s = app.playback.statusLine
+            if (s.indexOf("Error") === 0 || s === "Bad response")
+                page.startingLoad = false
+        }
     }
 
     function loadPlaylist() {
@@ -91,6 +142,7 @@ Page {
         if (tracksModel.count === 0)
             return
 
+        page.beginPlayback()
         app.queue.playNow(
             rowToTrack(tracksModel.get(0))
         )
@@ -535,19 +587,27 @@ Page {
                     id: playButton
                     anchors.centerIn: parent
                     visible: !page.editMode
+                           && !(page.startingLoad && !app.playback.playing)
 
-                    icon.source: app.playback.playing
+                    icon.source: page.isActive && app.playback.playing
                         ? "image://theme/icon-l-pause" : "image://theme/icon-l-play"
                     icon.color: FiatPonsTheme.primaryText
                     enabled: tracksModel.count > 0
                     onClicked: {
-                        if (app.playback.nowTrack !== null
-                                && !app.playback.explicitlyStopped) {
+                        if (page.isActive) {
+                            // This playlist owns playback: pause / resume.
+                            if (app.playback.loading)
+                                return
                             app.playback.toggle()
                         } else {
                             page.playAll()
                         }
                     }
+                }
+                BusyIndicator {
+                    anchors.centerIn: parent
+                    running: page.startingLoad && !app.playback.playing
+                    visible: running
                 }
             }
 
@@ -582,6 +642,7 @@ Page {
                     // Autoplay off (default): stock single-track play.
                     // Autoplay on: play the tapped track and queue the rest.
                     var rest = app.playback.autoQueue ? tracksAfter() : []
+                    page.beginPlayback()
                     app.queue.playNowRange(trackObj(), rest)
                 }
             }
@@ -595,7 +656,7 @@ Page {
                     MenuItem {
                         text: "Play now"
                         onClicked:
-                            app.queue.playNow(delegateItem.trackObj())
+                            { page.beginPlayback(); app.queue.playNow(delegateItem.trackObj()) }
                     }
 
                     MenuItem {
