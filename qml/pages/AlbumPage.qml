@@ -28,6 +28,11 @@ Page {
 
     property bool componentReady: false
 
+    // Big play button loader state: set when this page initiates a fresh
+    // start, cleared once the first track really begins (or on error /
+    // timeout) so a 2-3 s stream resolve doesn't look like a dead button.
+    property bool startingLoad: false
+
     function paint() {
         FiatPonsTheme.applyPalette(page)
     }
@@ -53,6 +58,54 @@ Page {
     Connections {
         target: FiatPonsTheme
         onAmbientChanged: page.paint()
+    }
+
+    // ---- Big play button: play / pause / loader state ----
+
+    // Is the currently playing (or resolving) track part of this album?
+    function trackInList(track) {
+        if (!track) return false
+        var target = String(track.id)
+        for (var i = 0; i < tracksModel.count; i++) {
+            if (String(tracksModel.get(i).id) === target)
+                return true
+        }
+        return false
+    }
+
+    readonly property bool isActive:
+        trackInList(app.playback.nowTrack)
+        || trackInList(app.playback.inflightTrack)
+
+    // Called when this page starts playback: show the loader until the first
+    // track really begins playing (or the load fails / times out).
+    function beginPlayback() {
+        startingLoad = true
+        startLoadTimer.restart()
+    }
+
+    Timer {
+        id: startLoadTimer
+        interval: 20000
+        repeat: false
+        onTriggered: page.startingLoad = false
+    }
+
+    Connections {
+        target: app.playback
+        function onPlayingChanged() {
+            if (app.playback.playing)
+                page.startingLoad = false
+        }
+    }
+
+    Connections {
+        target: app.playback
+        function onStatusLineChanged() {
+            var s = app.playback.statusLine
+            if (s.indexOf("Error") === 0 || s === "Bad response")
+                page.startingLoad = false
+        }
     }
 
     function refreshFavourite() {
@@ -285,9 +338,15 @@ Page {
                 border.width: 1
                 enabled: tracksModel.count > 0
                 opacity: enabled ? 1.0 : 0.4
+                BusyIndicator {
+                    anchors.centerIn: parent
+                    running: page.startingLoad && !app.playback.playing
+                    visible: running
+                }
                 Icon {
                     anchors.centerIn: parent
-                    source: app.playback.playing
+                    visible: !(page.startingLoad && !app.playback.playing)
+                    source: page.isActive && app.playback.playing
                         ? "image://theme/icon-l-pause" : "image://theme/icon-l-play"
                     color: FiatPonsTheme.accent
                 }
@@ -295,10 +354,14 @@ Page {
                     anchors.fill: parent
                     onClicked: {
                         if (tracksModel.count === 0) return
-                        if (app.playback.nowTrack !== null
-                                && !app.playback.explicitlyStopped) {
+                        if (page.isActive) {
+                            // This album owns playback: pause / resume.
+                            if (app.playback.loading)
+                                return
                             app.playback.toggle()
                         } else {
+                            // Start this album from the top and queue the rest.
+                            page.beginPlayback()
                             app.queue.playNow(page.rowToTrack(tracksModel.get(0)))
                             for (var i = 1; i < tracksModel.count; i++)
                                 app.queue.enqueue(page.rowToTrack(tracksModel.get(i)))
@@ -365,11 +428,12 @@ Page {
                 // Autoplay off (default): stock single-track play.
                 // Autoplay on: play the tapped track and queue the rest.
                 var rest = app.playback.autoQueue ? tracksAfter() : []
+                page.beginPlayback()
                 app.queue.playNowRange(trackObj(), rest)
             }
 
             menu: ContextMenu {
-                MenuItem { text: "Play now";     onClicked: app.queue.playNow(delegateItem.trackObj()) }
+                MenuItem { text: "Play now";     onClicked: { page.beginPlayback(); app.queue.playNow(delegateItem.trackObj()) } }
                 MenuItem { text: "Add to queue"; onClicked: app.queue.enqueue(delegateItem.trackObj()) }
                 MenuItem { text: "Play next";    onClicked: app.queue.playNext(delegateItem.trackObj()) }
             }
